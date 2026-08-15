@@ -4,6 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Secure User Authentication System — Prodigy InfoTech Task 01">
+  <meta name="theme-color" content="#0b1020">
   <title>{% block title %}SecureAuth{% endblock %}</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -16,6 +17,7 @@
   <nav>
     {% if session.get('user_id') %}
       <a href="{{ url_for('dashboard') }}">Dashboard</a>
+      {% if session.get('user_role') == 'admin' %}<a href="{{ url_for('admin_dashboard') }}">Admin</a>{% endif %}
       <form action="{{ url_for('logout') }}" method="post" class="inline-form">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <button class="nav-button" type="submit">Logout</button>
