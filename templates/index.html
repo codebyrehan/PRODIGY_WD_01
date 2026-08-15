@@ -1,0 +1,15 @@
+{% extends 'base.html' %}{% block title %}SecureAuth — Home{% endblock %}
+{% block content %}
+<section class="hero">
+  <div class="hero-copy">
+    <span class="eyebrow">PRODIGY_WD_01 · AUTHENTICATION</span>
+    <h1>Authentication that feels <span>simple.</span></h1>
+    <p>A secure, responsive authentication system with protected routes, password hashing, session management, validation, and CSRF protection.</p>
+    <div class="actions">
+      {% if session.get('user_id') %}<a class="button primary" href="{{ url_for('dashboard') }}">Open dashboard</a>{% else %}<a class="button primary" href="{{ url_for('register') }}">Get started</a><a class="button ghost" href="{{ url_for('login') }}">Sign in</a>{% endif %}
+    </div>
+  </div>
+  <div class="security-card"><div class="shield">✓</div><h3>Security first</h3><p>Passwords are stored as secure hashes, not plain text.</p><div class="checks"><div>✓ Protected routes</div><div>✓ Session-based access</div><div>✓ CSRF protection</div><div>✓ Input validation</div></div></div>
+</section>
+<section class="feature-grid"><article><b>01</b><h3>Register</h3><p>Create an account with validated credentials.</p></article><article><b>02</b><h3>Authenticate</h3><p>Sign in using your username or email.</p></article><article><b>03</b><h3>Access</h3><p>Only authenticated users can reach the dashboard.</p></article></section>
+{% endblock %}
