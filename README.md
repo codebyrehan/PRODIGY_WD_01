@@ -1,64 +1,107 @@
-# PRODIGY_WD_01 — Secure User Authentication System
+# PRODIGY_WD_01 — SecureAuth
 
-A secure, responsive user authentication web application built for the **Prodigy InfoTech Full-Stack Web Development Internship, Task 01**.
+> **Prodigy InfoTech · Full-Stack Web Development Internship · Task 01**
 
-## Core requirements
+SecureAuth is a professional, responsive authentication application built with Flask. It demonstrates secure registration, login, session-based authorization and protected routes, with additional security and UX features beyond the core internship brief.
 
+## ✨ Features
+
+### Authentication
 - User registration with server-side validation
-- Secure login with username or email
-- Password hashing using Werkzeug
+- Login with username **or** email
+- Werkzeug password hashing — passwords are never stored in plain text
 - Session-based authentication
-- Protected dashboard route
 - Secure logout and session clearing
+- Protected user dashboard
 
-## Enhanced features
-
-- Strong password policy: 8–128 characters, uppercase, lowercase, number and special character
-- Live password-strength requirement feedback on registration
-- CSRF protection for every POST request
+### Security enhancements
+- Strong password policy (8–128 chars, upper/lowercase, number, special character)
+- CSRF protection on every state-changing POST request
 - Duplicate username/email protection
-- Lightweight login throttling after repeated failed attempts
-- Role-based access control with `user` and `admin` roles
-- Protected admin dashboard for registered users
-- Production security headers including CSP, HSTS on HTTPS, clickjacking protection and MIME sniffing protection
-- Secure session-cookie configuration (`HttpOnly`, `SameSite`, `Secure` in production)
+- Login-attempt throttling
+- Role-based access control (`user` / `admin`)
+- Protected admin dashboard
+- Secure cookie configuration (`HttpOnly`, `SameSite`, `Secure` on HTTPS)
+- Content Security Policy and browser security headers
+- HSTS when HTTPS is active
 - Request-size limit
-- Safe handling of post-login redirect targets
-- Responsive UI and accessible form labels
+- Safe post-login redirect validation
+- Custom 400 / 403 / 404 / 413 / 500 error pages
 
-## Tech Stack
+### UX
+- Responsive desktop/mobile interface
+- Clear validation and flash feedback
+- Password requirement guidance
+- Semantic form labels and keyboard-friendly controls
+- Consistent visual design
 
-- Python / Flask
-- Flask-SQLAlchemy
-- SQLite
-- HTML5 / CSS3 / JavaScript
-- Gunicorn for production serving
-- Render Free for deployment
+## 🛠 Tech Stack
 
-## Environment variables
+| Layer | Technology |
+|---|---|
+| Backend | Python, Flask |
+| ORM | Flask-SQLAlchemy |
+| Database | SQLite (default) |
+| Frontend | HTML5, CSS3, JavaScript |
+| Security | Werkzeug hashing, CSRF tokens, secure cookies, CSP |
+| Production server | Gunicorn |
+| Deployment | Render Free |
 
-- `SECRET_KEY` — set a strong random value in production
-- `ADMIN_EMAIL` — optional email that receives the `admin` role when registering
-- `RENDER=true` — enables production-only secure session cookie behavior
-
-## Run locally
+## 🚀 Run locally
 
 ```bash
 python -m venv venv
-# Windows PowerShell
-.\\venv\\Scripts\\Activate.ps1
+```
+
+Windows PowerShell:
+
+```powershell
+.\venv\Scripts\Activate.ps1
+```
+
+Install dependencies:
+
+```bash
 pip install -r requirements.txt
+```
+
+Start the app:
+
+```bash
 python app.py
 ```
 
 Open `http://127.0.0.1:5000`.
 
-## Security notes
+## 🔐 Environment variables
 
-Passwords are never stored in plain text. Authentication uses hashed passwords and server-side sessions. All state-changing forms require a CSRF token. Login failures are throttled per client address. Production responses include additional browser security headers.
+| Variable | Purpose |
+|---|---|
+| `SECRET_KEY` | Strong random Flask session secret; set in production |
+| `ADMIN_EMAIL` | Optional email that receives the `admin` role during registration |
+| `DATABASE_URL` | Optional SQLAlchemy database URL |
+| `RENDER` | Set to `true` for Render production behavior |
 
-For a production system with multiple instances, the lightweight in-memory login throttling should be replaced by a shared store such as Redis, and database migrations should be managed with a migration tool such as Alembic/Flask-Migrate.
+## 🧪 Recommended test flow
 
-## Internship task mapping
+1. Open the registration page.
+2. Create a valid account.
+3. Verify weak passwords are rejected.
+4. Log in using username and again using email.
+5. Confirm `/dashboard` is inaccessible after logout.
+6. Verify repeated invalid logins trigger throttling.
+7. Verify a normal user cannot access `/admin`.
+8. Register with `ADMIN_EMAIL` configured and verify admin access.
+9. Try a nonexistent route and confirm the custom 404 page.
 
-This project satisfies Task 01 by implementing registration, secure login and protected routes, with optional security mechanisms and role-based access control added to demonstrate stronger full-stack/security practices.
+## 📌 Internship task mapping
+
+The Prodigy InfoTech Task 01 brief requires a user authentication system with secure registration, login and protected routes. SecureAuth implements all of those requirements and adds the optional password hashing, session management and role-based access control mechanisms described in the brief.
+
+## ⚠️ Production notes
+
+The included login throttle is intentionally lightweight and process-local for this internship project. A multi-instance production deployment should move rate-limit state to a shared store such as Redis. Database schema changes should also use a migration system such as Alembic/Flask-Migrate rather than relying on `create_all()`.
+
+---
+
+**Built by Mohd Rehan · Full-Stack Web Development Internship · Prodigy InfoTech**
