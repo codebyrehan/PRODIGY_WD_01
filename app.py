@@ -19,8 +19,6 @@ app.config["SESSION_COOKIE_NAME"] = "secureauth_session"
 app.config["MAX_CONTENT_LENGTH"] = 2 * 1024 * 1024
 
 db = SQLAlchemy(app)
-
-# Lightweight per-process login throttling. This is intentionally dependency-free for the free deployment.
 LOGIN_FAILURES = {}
 MAX_LOGIN_ATTEMPTS = 5
 LOCKOUT_SECONDS = 60
@@ -143,7 +141,8 @@ def register():
             for error in errors:
                 flash(error, "danger")
             return render_template("register.html", username=username, email=email)
-        role = "admin" if email == os.environ.get("ADMIN_EMAIL", "").strip().lower() and os.environ.get("ADMIN_EMAIL") else "user"
+        admin_email = os.environ.get("ADMIN_EMAIL", "").strip().lower()
+        role = "admin" if admin_email and email == admin_email else "user"
         user = User(username=username, email=email, role=role)
         user.set_password(password)
         db.session.add(user)
@@ -159,12 +158,10 @@ def login():
     if request.method == "POST":
         key = client_key()
         now = datetime.now(timezone.utc).timestamp()
-        failures = LOGIN_FAILURES.get(key, [])
-        failures = [t for t in failures if now - t < LOCKOUT_SECONDS]
+        failures = [t for t in LOGIN_FAILURES.get(key, []) if now - t < LOCKOUT_SECONDS]
         if len(failures) >= MAX_LOGIN_ATTEMPTS:
             flash("Too many failed attempts. Please wait one minute before trying again.", "warning")
             return render_template("login.html", identifier=request.form.get("identifier", ""))
-
         identifier = request.form.get("identifier", "").strip().lower()
         password = request.form.get("password", "")
         user = User.query.filter((User.email == identifier) | (User.username == identifier)).first()
@@ -173,10 +170,10 @@ def login():
             LOGIN_FAILURES[key] = failures
             flash("Invalid username/email or password.", "danger")
             return render_template("login.html", identifier=identifier)
-
         LOGIN_FAILURES.pop(key, None)
         session.clear()
         session["user_id"] = user.id
+        session["user_role"] = user.role
         session["csrf_token"] = secrets.token_urlsafe(32)
         session.permanent = False
         flash("Welcome back! You are securely signed in.", "success")
