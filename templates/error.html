@@ -1,0 +1,1 @@
+{% extends 'base.html' %}{% block title %}Error {{ code }} — SecureAuth{% endblock %}{% block content %}<section class="error-page"><span class="eyebrow">REQUEST ERROR</span><h1>{{ code }}</h1><p>{{ message }}</p><a class="button primary" href="{{ url_for('index') }}">Back home</a></section>{% endblock %}
