@@ -1,2 +1,23 @@
-{% extends 'base.html' %}{% block title %}Login — SecureAuth{% endblock %}
-{% block content %}<section class="auth-wrap"><div class="auth-card"><span class="eyebrow">SECURE LOGIN</span><h1>Welcome back</h1><p class="muted">Sign in to access your protected dashboard.</p><form method="post"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><label>Username or email<input name="identifier" value="{{ identifier|default('') }}" autocomplete="username" required placeholder="you@example.com"></label><label>Password<input type="password" name="password" autocomplete="current-password" required placeholder="Your password"></label><button class="button primary full" type="submit">Sign in</button></form><p class="switch">New here? <a href="{{ url_for('register') }}">Create an account</a></p></div></section>{% endblock %}
+{% extends 'base.html' %}
+{% block title %}Login — SecureAuth{% endblock %}
+{% block content %}
+<section class="auth-wrap">
+  <div class="auth-card">
+    <span class="eyebrow">SECURE LOGIN</span>
+    <h1>Welcome back</h1>
+    <p class="muted">Sign in to access your protected dashboard.</p>
+    <form method="post" autocomplete="on">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <label>Username or email
+        <input name="identifier" value="{{ identifier|default('') }}" autocomplete="username" required maxlength="120" placeholder="you@example.com">
+      </label>
+      <label>Password
+        <input type="password" name="password" autocomplete="current-password" required maxlength="128" placeholder="Your password">
+      </label>
+      <button class="button primary full" type="submit">Sign in securely</button>
+    </form>
+    <p class="security-note">Protected with password hashing, CSRF protection, secure sessions and login throttling.</p>
+    <p class="switch">New here? <a href="{{ url_for('register') }}">Create an account</a></p>
+  </div>
+</section>
+{% endblock %}
