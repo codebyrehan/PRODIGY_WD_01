@@ -3,6 +3,7 @@ import re
 import secrets
 from datetime import datetime, timezone
 from functools import wraps
+from urllib.parse import urlparse
 
 from flask import Flask, abort, flash, redirect, render_template, request, session, url_for
 from flask_sqlalchemy import SQLAlchemy
@@ -18,7 +19,14 @@ app.config["SESSION_COOKIE_SECURE"] = os.environ.get("RENDER") == "true"
 app.config["SESSION_COOKIE_NAME"] = "secureauth_session"
 app.config["MAX_CONTENT_LENGTH"] = 2 * 1024 * 1024
 
+# Proxy-aware production settings. Render terminates TLS before forwarding to Flask.
+if os.environ.get("RENDER") == "true":
+    from werkzeug.middleware.proxy_fix import ProxyFix
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
+
 db = SQLAlchemy(app)
+
+# Demo-friendly in-memory throttle. For multi-instance production, move this state to Redis.
 LOGIN_FAILURES = {}
 MAX_LOGIN_ATTEMPTS = 5
 LOCKOUT_SECONDS = 60
@@ -37,6 +45,7 @@ class User(db.Model):
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
 
+
 def login_required(view):
     @wraps(view)
     def wrapped(*args, **kwargs):
@@ -45,6 +54,7 @@ def login_required(view):
             return redirect(url_for("login", next=request.path))
         return view(*args, **kwargs)
     return wrapped
+
 
 def role_required(role):
     def decorator(view):
@@ -60,12 +70,14 @@ def role_required(role):
         return wrapped
     return decorator
 
+
 def csrf_token():
     token = session.get("csrf_token")
     if not token:
         token = secrets.token_urlsafe(32)
         session["csrf_token"] = token
     return token
+
 
 def password_errors(password):
     errors = []
@@ -83,8 +95,18 @@ def password_errors(password):
         errors.append("Password must include a special character.")
     return errors
 
+
 def client_key():
     return request.remote_addr or "unknown"
+
+
+def safe_next_url(candidate):
+    if not candidate:
+        return url_for("dashboard")
+    parsed = urlparse(candidate)
+    if parsed.scheme or parsed.netloc or not candidate.startswith("/") or candidate.startswith("//"):
+        return url_for("dashboard")
+    return candidate
 
 app.jinja_env.globals["csrf_token"] = csrf_token
 
@@ -177,10 +199,7 @@ def login():
         session["csrf_token"] = secrets.token_urlsafe(32)
         session.permanent = False
         flash("Welcome back! You are securely signed in.", "success")
-        next_url = request.args.get("next") or url_for("dashboard")
-        if not next_url.startswith("/") or next_url.startswith("//"):
-            next_url = url_for("dashboard")
-        return redirect(next_url)
+        return redirect(safe_next_url(request.args.get("next")))
     return render_template("login.html")
 
 @app.route("/dashboard")
@@ -213,9 +232,18 @@ def bad_request(error):
 def forbidden(error):
     return render_template("error.html", code=403, message=error.description), 403
 
+@app.errorhandler(404)
+def not_found(error):
+    return render_template("error.html", code=404, message="The page you requested could not be found."), 404
+
 @app.errorhandler(413)
 def too_large(error):
     return render_template("error.html", code=413, message="The submitted request is too large."), 413
+
+@app.errorhandler(500)
+def server_error(error):
+    db.session.rollback()
+    return render_template("error.html", code=500, message="Something went wrong on our side. Please try again."), 500
 
 with app.app_context():
     db.create_all()
